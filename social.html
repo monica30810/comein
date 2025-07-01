@@ -65,17 +65,17 @@
 .keynote-section h2 {
   font-size: 24px;
   color: #FFD700;
-  margin-bottom: 24px;
+  margin-bottom: 48px;
   font-weight: 700;
   border-bottom: 1px solid #333;
-  padding-bottom: 10px;
+  padding-bottom: 20px;
 }
 
 .keynote-section p {
   font-size: 16px;
   line-height: 1.8;
   color: #e0e0e0;
-  margin-bottom: 18px;
+  margin-bottom: 12px;
 }
 
     
@@ -84,6 +84,13 @@
   font-weight: bold;
 }
 
+.keynote-section .credit {
+  text-align: center;
+  color: #ffffff;
+  font-size: 14px;
+  margin-top: 60px;
+  opacity: 0.7;
+}
 
     @media (max-width: 900px) {
       .grid {
@@ -123,29 +130,33 @@
 
   <p><strong>總觀趨勢：</strong><br>
     ‧ 3～4月為整體低谷，產出與互動都下滑。<br>
-    ‧ 5～6月明顯回溫，尤其 Instagram、YouTube 表現亮眼。</p>
+    ‧ 5～6月明顯回溫，尤其 Instagram 表現亮眼。</p>
 
   <p><strong>Instagram：</strong><br>
     ‧ 6月互動數飆升至 4511，粉絲成長達 1098。
     ‧ 五月份粉絲成長率35.1%，六月份粉絲成長率120.4%<br>
-    ‧ 持續穩定發文（貼文＋Reels）可帶動自然成長。</p>
+    ‧ 方向：持續穩定發文（貼文＋Reels）帶動自然成長。</p>
 
   <p><strong>Facebook：</strong><br>
     ‧ 互動與粉絲成長偏低，6月互動僅 188。<br>
-    ‧ 建議轉為轉貼與導流為主的平台。</p>
+    ‧ 直得注意的是，5月互動與粉絲數增長創高，原因為其中篇貼文有下過短短幾天的廣告。<br>
+    ‧ 方向：目前的內容投放廣告效果明顯，可加強廣告投放。</p>
 
   <p><strong>Podcast：</strong><br>
     ‧ 雖然近月上傳少，但下載仍穩定維持 500＋，顯示具長尾價值。<br>
-    ‧ 可恢復上傳頻率並持續在社群上幫舊影片導流。</p>
+    ‧ 方向：慢慢恢復上傳頻率並持續在社群上幫舊影片導流。</p>
 
   <p><strong>YouTube：</strong><br>
     ‧ 5月在沒發文的情況下觀看數創高達 5546，後台顯示是去年的形象影片突然得到三千多次播放。<br>
-    ‧ 建議持續發布影片並透過其他平台（官網、Line@、qrcode）導流。</p>
+    ‧ 方向：持續發布影片並透過其他流量較高的平台（官網、Line@、現場qrcode）導流。</p>
 
-  <p><strong>統整建議：</strong><br>
-    ‧ IG 為主要增粉與互動引擎。<br>
-    ‧ Podcast 與 YouTube 屬於內容資產累積型平台。<br>
-    ‧ FB 七月可嘗試新內容方向並投入廣告看是否能帶動量能，若依然疲弱，可改為佈告欄模式作為分流用途。</p>
+  <p><strong>統整：</strong><br>
+    ‧ IG 可作為主要增粉與互動引擎。<br>
+    ‧ Podcast 與 YouTube 屬於內容資產累積型平台（具長尾效應）。<br>
+    ‧ FB 七月可嘗試新內容方向並投入廣告應該可以複製IG模式開始帶動量能。</p>
+    
+    <p class="credit">社群負責/圖表統整：Monica</p>
+
 </div>
 
 
@@ -261,7 +272,7 @@
         },
         scales: {
           x: { ticks: { color: '#fff' }, grid: { color: '#333' } },
-          y: { stacked: true, beginAtZero: true, ticks: { color: '#FF0000' }, title: { display: true, text: '影片數', color: '#FF0000' } },
+          y: { stacked: true, beginAtZero: true, ticks: { color: '#FF0000' }, title: { display: true, text: '上傳數', color: '#FF0000' } },
           y2: { position: 'right', ticks: { color: '#FFD700' }, grid: { drawOnChartArea: false }, title: { display: true, text: '觀看數', color: '#FFD700' } },
           y3: { position: 'right', offset: true, ticks: { color: '#59D1FF' }, grid: { drawOnChartArea: false }, title: { display: true, text: '粉絲數', color: '#59D1FF' } }
         }
