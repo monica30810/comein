@@ -44,6 +44,15 @@
       margin-bottom: 20px;
       font-weight: bold;
     }
+    
+.chart-note {
+  text-align: center;
+  color: #ccc;
+  font-size: 14px;
+  margin-top: 20px;
+  font-style: italic;
+  opacity: 0.8;
+}
 
     canvas {
   width: 100% !important;
@@ -107,21 +116,30 @@
     <div class="chart-container">
       <h2 style="color: #FF59A4;">Instagram 趨勢圖</h2>
       <canvas id="igChart"></canvas>
+      <p class="chart-note">※ 互動數（Engagements）＝ 按讚數 + 留言數 + 分享數 + 收藏數 + 點擊數（點進全文／看留言/點擊帳號）</p>
+      <p class="chart-note">※ 曾下廣告區段：一月、三月、五月、六月</p>
+
     </div>
 
     <div class="chart-container">
       <h2 style="color: #1877f2;">Facebook 趨勢圖</h2>
       <canvas id="fbChart"></canvas>
+      <p class="chart-note">※ 互動數（Engagements）＝ 按讚數 + 心情回應（愛心、怒、哈）+ 留言數 + 分享數 + 頭像/貼文連結點擊數</p>
+      <p class="chart-note">※ 曾下廣告區段：一月、五月</p>
+
     </div>
 
     <div class="chart-container">
       <h2 style="color: #A06CFF;">Podcast 趨勢圖</h2>
       <canvas id="podcastChart"></canvas>
+      <p class="chart-note">※ 下載數＝ 當月份過往所有影片被下載下來收聽的數量總和</p>
+
     </div>
 
     <div class="chart-container">
       <h2 style="color: #FF0000;">YouTube 趨勢圖</h2>
       <canvas id="youtubeChart"></canvas>
+      <p class="chart-note">※ 觀看數＝ 當月份過往所有影片被點擊觀看的次數總和</p>
     </div>
   </div>
 
