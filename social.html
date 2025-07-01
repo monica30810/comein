@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>每月社群趨勢統計</title>
+  
+
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>社群平台內容與聲量趨勢</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background-color: #101010;
+      color: #fff;
+      margin: 0;
+      padding: 40px 20px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 28px;
+      color: #FFD700;
+      margin-bottom: 40px;
+    }
+
+    .grid {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  width: 100%;
+  max-width: 900px; /* 最大寬度限制，可依需求調整 */
+  margin: 0 auto;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+
+    .chart-container {
+      background-color: #1a1a1a;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .chart-container h2 {
+      font-size: 20px;
+      margin-bottom: 20px;
+      font-weight: bold;
+    }
+
+    canvas {
+  width: 100% !important;
+  height: auto !important;
+  max-width: 700px;
+  margin: 0 auto;
+  display: block;
+}
+
+
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>各平台內容經營趨勢總覽</h1>
+
+  <div class="grid">
+    <div class="chart-container">
+      <h2 style="color: #FF59A4;">Instagram 趨勢圖</h2>
+      <canvas id="igChart"></canvas>
+    </div>
+
+    <div class="chart-container">
+      <h2 style="color: #1877f2;">Facebook 趨勢圖</h2>
+      <canvas id="fbChart"></canvas>
+    </div>
+
+    <div class="chart-container">
+      <h2 style="color: #A06CFF;">Podcast 趨勢圖</h2>
+      <canvas id="podcastChart"></canvas>
+    </div>
+
+    <div class="chart-container">
+      <h2 style="color: #FF0000;">YouTube 趨勢圖</h2>
+      <canvas id="youtubeChart"></canvas>
+    </div>
+  </div>
+
+  <!-- 加入圖表的 Chart.js 設定 -->
+  <script>
+    // IG
+    new Chart(document.getElementById('igChart').getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: ['一月', '二月', '三月', '四月', '五月', '六月'],
+        datasets: [
+          { type: 'bar', label: '貼文數', data: [12, 11, 4, 1, 9, 10], backgroundColor: 'rgba(255, 139, 203, 0.8)', yAxisID: 'y', stack: 'stack1' },
+          { type: 'bar', label: 'Reels數', data: [8, 4, 7, 0, 2, 4], backgroundColor: 'rgba(197, 109, 203, 0.8)', yAxisID: 'y', stack: 'stack1' },
+          { type: 'line', label: '互動數', data: [689, 1257, 769, 41, 1032, 4511], borderColor: '#FFD700', backgroundColor: 'transparent', tension: 0.3, yAxisID: 'y2' },
+          { type: 'line', label: '粉絲數成長', data: [160, 285, 219, 11, 237, 1098], borderColor: '#59D1FF', backgroundColor: 'transparent', tension: 0.3, yAxisID: 'y3' }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { labels: { color: '#fff' } },
+          tooltip: {
+            callbacks: {
+              label: ctx => ctx.dataset.label === '粉絲數成長' ? `+${ctx.parsed.y} 粉絲` : `${ctx.dataset.label}: ${ctx.parsed.y}`
+            }
+          }
+        },
+        scales: {
+          x: { ticks: { color: '#fff' }, grid: { color: '#333' } },
+          y: { stacked: true, beginAtZero: true, ticks: { color: '#FF8BCB' }, title: { display: true, text: '內容數', color: '#FF8BCB' } },
+          y2: { position: 'right', ticks: { color: '#FFD700' }, grid: { drawOnChartArea: false }, title: { display: true, text: '互動數', color: '#FFD700' } },
+          y3: { position: 'right', offset: true, ticks: { color: '#59D1FF' }, grid: { drawOnChartArea: false }, title: { display: true, text: '粉絲數', color: '#59D1FF' } }
+        }
+      }
+    });
+
+    // FB
+    new Chart(document.getElementById('fbChart').getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: ['一月', '二月', '三月', '四月', '五月', '六月'],
+        datasets: [
+          { type: 'bar', label: '貼文數', data: [12, 11, 4, 1, 9, 10], backgroundColor: 'rgba(24, 119, 242, 0.8)', yAxisID: 'y', stack: 'stack1' },
+          { type: 'bar', label: '影片數', data: [8, 5, 7, 0, 2, 4], backgroundColor: 'rgba(14, 90, 171, 0.8)', yAxisID: 'y', stack: 'stack1' },
+          { type: 'line', label: '互動數', data: [178, 39, 122, 81, 318, 188], borderColor: '#FFD700', backgroundColor: 'transparent', tension: 0.3, yAxisID: 'y2' },
+          { type: 'line', label: '粉絲數成長', data: [27, 3, 10, 14, 51, 12], borderColor: '#59D1FF', backgroundColor: 'transparent', tension: 0.3, yAxisID: 'y3' }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { labels: { color: '#fff' } },
+          tooltip: {
+            callbacks: {
+              label: ctx => ctx.dataset.label === '粉絲數成長' ? `+${ctx.parsed.y} 粉絲` : `${ctx.dataset.label}: ${ctx.parsed.y}`
+            }
+          }
+        },
+        scales: {
+          x: { ticks: { color: '#fff' }, grid: { color: '#333' } },
+          y: { stacked: true, beginAtZero: true, ticks: { color: '#1877f2' }, title: { display: true, text: '內容數', color: '#1877f2' } },
+          y2: { position: 'right', ticks: { color: '#FFD700' }, grid: { drawOnChartArea: false }, title: { display: true, text: '互動數', color: '#FFD700' } },
+          y3: { position: 'right', offset: true, ticks: { color: '#59D1FF' }, grid: { drawOnChartArea: false }, title: { display: true, text: '粉絲數', color: '#59D1FF' } }
+        }
+      }
+    });
+
+    // Podcast
+    new Chart(document.getElementById('podcastChart').getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: ['一月', '二月', '三月', '四月', '五月', '六月'],
+        datasets: [
+          { type: 'bar', label: '上傳數', data: [3, 4, 3, 0, 0, 1], backgroundColor: 'rgba(160, 108, 255, 0.8)', stack: 'stack1' },
+          { type: 'line', label: '下載數', data: [577, 525, 590, 509, 643, 482], borderColor: '#FFD700', backgroundColor: 'transparent', tension: 0.3, yAxisID: 'y2' }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { labels: { color: '#fff' } }
+        },
+        scales: {
+          x: { ticks: { color: '#fff' }, grid: { color: '#333' } },
+          y: { stacked: true, beginAtZero: true, ticks: { color: '#A06CFF' }, title: { display: true, text: '上傳數', color: '#A06CFF' } },
+          y2: { position: 'right', ticks: { color: '#FFD700' }, grid: { drawOnChartArea: false }, title: { display: true, text: '下載數', color: '#FFD700' } }
+        }
+      }
+    });
+
+    // YouTube
+    new Chart(document.getElementById('youtubeChart').getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: ['一月', '二月', '三月', '四月', '五月', '六月'],
+        datasets: [
+          { type: 'bar', label: '長影片數', data: [2, 4, 4, 1, 0, 1], backgroundColor: 'rgba(255, 0, 0, 0.8)', yAxisID: 'y', stack: 'stack1' },
+          { type: 'bar', label: 'Shorts 數', data: [6, 8, 0, 0, 0, 2], backgroundColor: 'rgba(200, 0, 0, 0.8)', yAxisID: 'y', stack: 'stack1' },
+          { type: 'line', label: '觀看數', data: [2432, 3134, 2798, 2043, 5546, 2555], borderColor: '#FFD700', backgroundColor: 'transparent', tension: 0.3, yAxisID: 'y2' },
+          { type: 'line', label: '粉絲數成長', data: [2, 20, 14, 10, 2, 5], borderColor: '#59D1FF', backgroundColor: 'transparent', tension: 0.3, yAxisID: 'y3' }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { labels: { color: '#fff' } },
+          tooltip: {
+            callbacks: {
+              label: ctx => ctx.dataset.label === '粉絲數成長' ? `+${ctx.parsed.y} 粉絲` : `${ctx.dataset.label}: ${ctx.parsed.y}`
+            }
+          }
+        },
+        scales: {
+          x: { ticks: { color: '#fff' }, grid: { color: '#333' } },
+          y: { stacked: true, beginAtZero: true, ticks: { color: '#FF0000' }, title: { display: true, text: '影片數', color: '#FF0000' } },
+          y2: { position: 'right', ticks: { color: '#FFD700' }, grid: { drawOnChartArea: false }, title: { display: true, text: '觀看數', color: '#FFD700' } },
+          y3: { position: 'right', offset: true, ticks: { color: '#59D1FF' }, grid: { drawOnChartArea: false }, title: { display: true, text: '粉絲數', color: '#59D1FF' } }
+        }
+      }
+    });
+  </script>
+
+</body>
+</html>
+<!-- partial -->
+  
+</body>
+</html>
