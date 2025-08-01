@@ -3,380 +3,334 @@
 <head>
   <meta charset="UTF-8" />
   <title>社群平台內容與聲量趨勢</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
-    body {
-      font-family: 'Noto Sans TC', sans-serif;
-      background-color: #101010;
-      color: #fff;
-      margin: 0;
-      padding: 40px 20px;
+    body{font-family:'Noto Sans TC',sans-serif;background:#101010;color:#fff;margin:0;padding:40px 20px}
+    h1{text-align:center;font-size:28px;color:#FFD700;margin-bottom:28px}
+    .grid{display:flex;flex-direction:column;gap:40px;max-width:1000px;margin:0 auto}
+    .chart-container{background:#1a1a1a;border-radius:12px;padding:20px;text-align:center}
+    .chart-container h2{font-size:26px;margin-bottom:16px;font-weight:bold}
+    canvas{width:100%!important;height:auto!important;max-width:780px;margin:0 auto}
+    /* 可編輯總表 */
+    table{border-collapse:collapse;margin:20px auto;width:100%;max-width:1000px;background:rgba(255,255,255,.05);border-radius:8px;overflow-x:auto;color:#fff;font-size:13px}
+    th,td{border:1px solid rgba(255,255,255,.1);padding:4px 6px;text-align:center;min-width:60px}
+    th{background:rgba(255,215,0,.15)}
+    #updateBtn{margin:14px auto 0 auto;display:block;padding:6px 16px;border:none;border-radius:6px;background:#FFD700;color:#000;font-weight:700;cursor:pointer}
+    .keynote-section{
+      background-color:#1f1f2e;
+      border-left:6px solid #FFD700;
+      border-radius:12px;
+      padding:30px 40px;
+      max-width:800px;
+      margin:60px auto 80px auto;
+      box-shadow:0 0 12px rgba(0,0,0,.3);
     }
-
-    h1 {
-      text-align: center;
-      font-size: 28px;
-      color: #FFD700;
-      margin-bottom: 40px;
-    }
-
-    .grid {
-  display: flex;
-  flex-direction: column;
-  gap: 40px;
-  width: 100%;
-  max-width: 900px; /* 最大寬度限制，可依需求調整 */
-  margin: 0 auto;
-  padding: 0 20px;
-  box-sizing: border-box;
-}
-
-
-    .chart-container {
-      background-color: #1a1a1a;
-      border-radius: 12px;
-      padding: 20px;
-      text-align: center;
-    }
-
-    .chart-container h2 {
-      font-size: 28px;
-      margin-bottom: 20px;
-      font-weight: bold;
-    }
-    
-.chart-note {
-  text-align: center;
-  color: #ccc;
-  font-size: 14px;
-  margin-top: 20px;
-  font-style: italic;
-  opacity: 0.8;
-}
-
-    canvas {
-  width: 100% !important;
-  height: auto !important;
-  max-width: 700px;
-  margin: 0 auto;
-  display: block;
-}
-.keynote-section {
-  background-color: #1f1f2e;
-  border-left: 6px solid #FFD700;
-  border-radius: 12px;
-  padding: 30px 40px;
-  max-width: 800px;
-  margin: 60px auto 80px auto;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.3);
-}
-
-.keynote-section h2 {
-  font-size: 24px;
-  color: #FFD700;
-  margin-bottom: 48px;
-  font-weight: 700;
-  border-bottom: 1px solid #333;
-  padding-bottom: 20px;
-}
-
-.keynote-section p {
-  font-size: 16px;
-  line-height: 1.8;
-  color: #e0e0e0;
-  margin-bottom: 12px;
-}
-
-    
-.keynote-section strong {
-  color: #FFD700;
-  font-weight: bold;
-}
-
-.keynote-section .credit {
-  text-align: center;
-  color: #ffffff;
-  font-size: 14px;
-  margin-top: 60px;
-  opacity: 0.7;
-}
-
-    @media (max-width: 900px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
-    }
+    .keynote-section h2{font-size:24px;color:#FFD700;margin-bottom:48px;font-weight:700;border-bottom:1px solid #333;padding-bottom:20px}
+    .keynote-section p{font-size:16px;line-height:1.8;color:#e0e0e0;margin-bottom:12px}
+    .keynote-section strong{color:#FFD700;font-weight:bold}
+    .keynote-section .credit{text-align:center;color:#fff;font-size:14px;margin-top:60px;opacity:.7}
   </style>
 </head>
 <body>
+<h1>社群平台數據表現</h1>
 
-  <h1>各平台內容經營趨勢總覽</h1>
+<div class="grid">
+  <div class="chart-container"><h2 style="color:#FF59A4;">Instagram 趨勢圖</h2><canvas id="igChart"></canvas></div>
+  <div class="chart-container"><h2 style="color:#1877f2;">Facebook 趨勢圖</h2><canvas id="fbChart"></canvas></div>
+  <div class="chart-container"><h2 style="color:#A06CFF;">Podcast 趨勢圖</h2><canvas id="podcastChart"></canvas></div>
+  <div class="chart-container"><h2 style="color:#FF0000;">YouTube 趨勢圖</h2><canvas id="youtubeChart"></canvas></div>
+  <div class="chart-container"><h2 style="color:#FFD700;">粉絲增長與廣告投入</h2><canvas id="growthChart"></canvas></div>
 
-  <div class="grid">
-    <div class="chart-container">
-      <h2 style="color: #FF59A4;">Instagram 趨勢圖</h2>
-      <canvas id="igChart"></canvas>
-      <p class="chart-note">※ 互動數（Engagements）＝ 按讚數 + 留言數 + 分享數 + 收藏數 + 點擊數（點進全文／看留言/點擊帳號）</p>
-      <p class="chart-note">※ 曾下廣告區段：一月(數據遺失)、三月(NT2100)、五月(NT3336)、六月(NT8250)</p>
-
-    </div>
-
-    <div class="chart-container">
-      <h2 style="color: #1877f2;">Facebook 趨勢圖</h2>
-      <canvas id="fbChart"></canvas>
-      <p class="chart-note">※ 互動數（Engagements）＝ 按讚數 + 心情回應（愛心、怒、哈）+ 留言數 + 分享數 + 頭像/貼文連結點擊數</p>
-      <p class="chart-note">※ 曾下廣告區段：一月(NT2141)、五月(NT1999)</p>
-
-    </div>
-
-    <div class="chart-container">
-      <h2 style="color: #A06CFF;">Podcast 趨勢圖</h2>
-      <canvas id="podcastChart"></canvas>
-      <p class="chart-note">※ 下載數＝ 當月份過往所有影片被下載下來收聽的數量總和</p>
-
-    </div>
-
-    <div class="chart-container">
-      <h2 style="color: #FF0000;">YouTube 趨勢圖</h2>
-      <canvas id="youtubeChart"></canvas>
-      <p class="chart-note">※ 觀看數＝ 當月份過往所有影片被點擊觀看的次數總和</p>
-    </div>
-  </div>
-
-  <div class="keynote-section">
-  <h2>Keynote 總結：社群平台趨勢分析</h2>
-
-  <p><strong>總觀趨勢：</strong><br>
-    ‧ 3～4月為整體低谷，產出與互動都下滑。<br>
-    ‧ 5～6月明顯回溫，尤其 Instagram 表現亮眼。</p>
-
-  <p><strong>Instagram：</strong><br>
-    ‧ 6月互動數飆升至 4511，粉絲成長達 1098人, 來到2288人<br>
-    ‧ 6月份廣告費僅花了NT8250, 約一個粉絲7.5元，成效亮眼！<br>
-    ‧ 五月份粉絲成長率24.9%，六月份粉絲成長率92.3%<br>
-    ‧ 方向建議：穩定每週2-3篇貼文＋Reels數量需增加，現在每週不到一隻＋適量廣告，帶動成長動能。</p>
-
-  <p><strong>Facebook：</strong><br>
-    ‧ 互動與粉絲成長偏低，6月互動僅 188，廣告花費為0<br>
-    ‧ 值得注意的是，5月互動與粉絲數增長創高，原因為其中一篇貼文有下過幾天的廣告NT1999, 增加了51位粉絲, 平均一粉絲39元。<br>
-    ‧ 方向建議：耕耘內容時有沒有廣告輔助，成效差別顯著，可酌量投放廣告，滾動飛輪。</p>
-
-  <p><strong>Podcast：</strong><br>
-    ‧ 雖然近月上傳少，但下載仍穩定維持 500＋，顯示具長尾價值。<br>
-    ‧ 方向建議：更新頻率受限，需有能固定輸出的人一起投入內容創作</p>
-
-  <p><strong>YouTube：</strong><br>
-    ‧ 5月在沒發文的情況下觀看數創高達 5546，後台顯示是去年的院長訪談形象影片突然得到三千多次播放。<br>
-    ‧ 方向建議：拍攝意願低下的狀況，產出困難，未來發展需要新一批有熱情投入的人，跟具網感的影音外包人員。</p>
-
-  <p><strong>資源統整：</strong><br>
-    ‧ 人力投入狀況：1-3月Heidi(NT40000)專職投入社群產出，四月空窗期，五月起改由Monica兼任內容產出，六月欣泉護理師貢獻2篇短影。<br>
-    ‧ IG 可作為主要增粉與互動引擎，7月預估廣告預算(NT5000-8000/月)。<br>
-    ‧ FB 7月可嘗試新內容方向並投入廣告預算(NT5000-8000/月)，期許能複製IG模式開始帶動量能。<br>
-    ‧ Podcast 與 YouTube 屬於內容資產累積型平台（具長尾效應），若要好好發展，需要對內容輸出‘有熱情’的人組隊共同努力，才能持續地產出高質量內容。</p>
-    
-    <p class="credit">社群負責/圖表統整：Monica</p>
-
+  <!-- 可編輯主表 -->
+  <table id="data-table" contenteditable="true">
+    <thead>
+      <tr>
+        <th rowspan="2">月</th>
+        <th colspan="6">Instagram</th>
+        <th colspan="6">Facebook</th>
+        <th colspan="2">Podcast</th>
+        <th colspan="4">YouTube</th>
+      </tr>
+      <tr>
+        <th>貼文</th><th>Reels</th><th>互動</th><th>新粉</th><th>Ads</th><th>CPC</th>
+        <th>貼文</th><th>影片</th><th>互動</th><th>新粉</th><th>Ads</th><th>CPC</th>
+        <th>上傳</th><th>下載</th>
+        <th>長片</th><th>Shorts</th><th>新粉</th><th>觀看</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>一月</td><td>12</td><td>8</td><td>689</td><td>160</td><td>4200</td><td></td><td>12</td><td>8</td><td>178</td><td>27</td><td>2141</td><td></td><td>3</td><td>577</td><td>2</td><td>6</td><td>2</td><td>2432</td></tr>
+      <tr><td>二月</td><td>11</td><td>4</td><td>1257</td><td>285</td><td></td><td></td><td>11</td><td>5</td><td>39</td><td>3</td><td></td><td></td><td>4</td><td>525</td><td>4</td><td>8</td><td>2</td><td>3134</td></tr>
+      <tr><td>三月</td><td>4</td><td>7</td><td>769</td><td>219</td><td>2100</td><td></td><td>4</td><td>7</td><td>122</td><td>10</td><td></td><td></td><td>3</td><td>590</td><td>4</td><td>0</td><td>2</td><td>2798</td></tr>
+      <tr><td>四月</td><td>1</td><td>0</td><td>41</td><td>11</td><td></td><td></td><td>1</td><td>0</td><td>81</td><td>14</td><td></td><td></td><td>0</td><td>509</td><td>1</td><td>0</td><td>2</td><td>2043</td></tr>
+      <tr><td>五月</td><td>9</td><td>2</td><td>1032</td><td>237</td><td>3336</td><td></td><td>9</td><td>2</td><td>318</td><td>51</td><td>1999</td><td></td><td>0</td><td>643</td><td>0</td><td>0</td><td>2</td><td>5546</td></tr>
+      <tr><td>六月</td><td>10</td><td>4</td><td>4511</td><td>1098</td><td>8250</td><td></td><td>10</td><td>4</td><td>188</td><td>12</td><td></td><td></td><td>1</td><td>482</td><td>1</td><td>2</td><td>2</td><td>2555</td></tr>
+      <tr><td>七月</td><td>6</td><td>8</td><td>6485</td><td>1273</td><td>9540</td><td></td><td>6</td><td>6</td><td>1079</td><td>72</td><td>2100</td><td></td><td>1</td><td>539</td><td>0</td><td>1</td><td>2</td><td>2326</td></tr>
+      <tr><td>八月</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>九月</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>十月</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>十一月</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>十二月</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    </tbody>
+  </table>
+  <button id="updateBtn">更新圖表</button>
 </div>
 
+<script>
+/* ====== 工具函式 ====== */
+const $ = id => document.getElementById(id);
+const toInt = v => { const n = parseInt(v); return isNaN(n) ? null : n; };
 
+  // 計算 CPC
+  function updateCPC(){
+  document.querySelectorAll('#data-table tbody tr').forEach(r=>{
+    const c = r.children;
+    // 若這一行沒有足夠的欄位 (至少要到 index 12)，就跳過
+    if (c.length < 13) return;
 
-  <!-- 加入圖表的 Chart.js 設定 -->
-  <script>
-    // IG
-    new Chart(document.getElementById('igChart').getContext('2d'), {
-      type: 'bar',
-      data: {
-        labels: ['一月', '二月', '三月', '四月', '五月', '六月'],
-        datasets: [
-          { type: 'bar', label: '貼文數', data: [12, 11, 4, 1, 9, 10], backgroundColor: 'rgba(255, 139, 203, 0.8)', yAxisID: 'y', stack: 'stack1' },
-          { type: 'bar', label: 'Reels數', data: [8, 4, 7, 0, 2, 4], backgroundColor: 'rgba(197, 109, 203, 0.8)', yAxisID: 'y', stack: 'stack1' },
-          { type: 'line', label: '互動數', data: [689, 1257, 769, 41, 1032, 4511], borderColor: '#FFD700', backgroundColor: 'transparent', tension: 0.3, yAxisID: 'y2' },
-          { type: 'line', label: '粉絲數成長', data: [160, 285, 219, 11, 237, 1098], borderColor: '#59D1FF', backgroundColor: 'transparent', tension: 0.3, yAxisID: 'y3' }
-        ]
-      },
-      options: {
-        animation: {
-  onComplete: () => {
-    const charts = [
-      { id: "igChart", color: "#59D1FF" },
-      { id: "fbChart", color: "#59D1FF" },
-      { id: "youtubeChart", color: "#59D1FF" }
-    ];
-    charts.forEach(({ id, color }) => {
-      const chart = Chart.getChart(id);
-      if (!chart) return;
-      const ctx = chart.ctx;
+    const igNew = toInt(c[4].innerText),
+          igAds = toInt(c[5].innerText);
+    const fbNew = toInt(c[10].innerText),
+          fbAds = toInt(c[11].innerText);
+
+    c[6].innerText  = igNew ? (igAds/igNew).toFixed(2) : '';
+    c[12].innerText = fbNew ? (fbAds/fbNew).toFixed(2) : '';
+  });
+}
+/* ====== +粉絲標籤外掛（安全） ====== */
+Chart.register({
+  id:'labelPlus',
+  afterDatasetsDraw(chart){
+    chart.data.datasets.forEach((ds,idx)=>{
+      if(!ds.label.includes('粉絲數成長')) return;
+      const meta = chart.getDatasetMeta(idx);
+      const ctx   = chart.ctx;
       ctx.save();
-      ctx.font = 'bold 12px Noto Sans TC';
-      ctx.fillStyle = color;
-      const datasetIndex = chart.data.datasets.findIndex(ds => ds.label.includes('粉絲'));
-      const meta = chart.getDatasetMeta(datasetIndex);
-      chart.data.datasets[datasetIndex].data.forEach((val, i) => {
-        const x = meta.data[i].x;
-        const y = meta.data[i].y;
-        ctx.fillText(`+${val}`, x - 10, y - 10);
+      ctx.fillStyle = '#59D1FF';
+      ctx.font      = 'bold 12px Noto Sans TC';
+      ds.data.forEach((v,i)=>{
+        const el = meta.data[i];
+        if(!el) return;
+        const {x,y} = el.getProps(['x','y'],true);
+        ctx.fillText('+'+v, x-10, y-8);
       });
       ctx.restore();
     });
   }
-},
+});
 
-        responsive: true,
-        plugins: {
-          legend: { labels: { color: '#fff' } },
-          tooltip: {
-            callbacks: {
-              label: ctx => ctx.dataset.label === '粉絲數成長' ? `+${ctx.parsed.y} 粉絲` : `${ctx.dataset.label}: ${ctx.parsed.y}`
-            }
-          }
-        },
-        scales: {
-          x: { ticks: { color: '#fff' }, grid: { color: '#333' } },
-          y: { stacked: true, beginAtZero: true, ticks: { color: '#FF8BCB' }, title: { display: true, text: '內容數', color: '#FF8BCB' } },
-          y2: { position: 'right', ticks: { color: '#FFD700' }, grid: { drawOnChartArea: false }, title: { display: true, text: '互動數', color: '#FFD700' } },
-          y3: { position: 'right', offset: true, ticks: { color: '#59D1FF' }, grid: { drawOnChartArea: false }, title: { display: true, text: '粉絲數', color: '#59D1FF' } }
-        }
-      }
-    });
-    
+/* ====== 解析表格 ====== */
+function getTableData(){
+  const rows = [...document.querySelectorAll('#data-table tbody tr')];
+  const months   = [];
 
-    // FB
-    new Chart(document.getElementById('fbChart').getContext('2d'), {
-      type: 'bar',
-      data: {
-        labels: ['一月', '二月', '三月', '四月', '五月', '六月'],
-        datasets: [
-          { type: 'bar', label: '貼文數', data: [12, 11, 4, 1, 9, 10], backgroundColor: 'rgba(24, 119, 242, 0.8)', yAxisID: 'y', stack: 'stack1' },
-          { type: 'bar', label: '影片數', data: [8, 5, 7, 0, 2, 4], backgroundColor: 'rgba(14, 90, 171, 0.8)', yAxisID: 'y', stack: 'stack1' },
-          { type: 'line', label: '互動數', data: [178, 39, 122, 81, 318, 188], borderColor: '#FFD700', backgroundColor: 'transparent', tension: 0.3, yAxisID: 'y2' },
-          { type: 'line', label: '粉絲數成長', data: [27, 3, 10, 14, 51, 12], borderColor: '#59D1FF', backgroundColor: 'transparent', tension: 0.3, yAxisID: 'y3' }
-        ]
+  const IG_posts  = [], IG_reels = [], IG_int   = [], IG_new = [], IG_ads = [];
+  const FB_posts  = [], FB_vids  = [], FB_int   = [], FB_new = [], FB_ads = [];
+  const POD_up    = [], POD_down = [];
+  const YT_long   = [], YT_short = [], YT_new   = [], YT_view = [];
+
+  rows.forEach(r=>{
+    const t = [...r.children].map(td=>td.innerText.trim());
+    if (!t[0]) return;    // 跳過空列
+    months.push(t[0]);
+
+    // Instagram (欄位 1~5)
+    IG_posts.push( toInt(t[1]) || 0 );
+    IG_reels.push( toInt(t[2]) || 0 );
+    IG_int.push(   toInt(t[3]) || 0 );
+    IG_new.push(   toInt(t[4]) || 0 );
+    IG_ads.push(   toInt(t[5]) || 0 );
+
+    // Facebook (欄位 7~11)
+    FB_posts.push( toInt(t[7])  || 0 );
+    FB_vids.push(  toInt(t[8])  || 0 );
+    FB_int.push(   toInt(t[9])  || 0 );
+    FB_new.push(   toInt(t[10]) || 0 );
+    FB_ads.push(   toInt(t[11]) || 0 );
+
+    // Podcast (上傳 t[13], 下載 t[14])
+    POD_up.push(   toInt(t[13]) || 0 );
+    POD_down.push( toInt(t[14]) || 0 );
+
+    // YouTube (長片 t[15], Shorts t[16], 觀看 t[17])
+    YT_long.push(  toInt(t[15]) || 0 );
+    YT_short.push( toInt(t[16]) || 0 );
+    YT_new.push(   toInt(t[17]) || 0 ); 
+    YT_view.push(  toInt(t[18]) || 0 );
+  });
+
+  return {
+    months,
+    IG_posts, IG_reels, IG_int, IG_new, IG_ads,
+    FB_posts, FB_vids, FB_int, FB_new, FB_ads,
+    POD_up, POD_down,
+    YT_long, YT_short, YT_new, YT_view
+  };
+}
+
+
+
+/* ====== 繪圖 ====== */
+let igChart, fbChart, podcastChart, youtubeChart, growthChart;
+function buildCharts(){
+  updateCPC(); 
+  const d=getTableData(), null0=v=>v??0;
+
+  /* -- IG -- */
+  igChart?.destroy();
+  igChart=new Chart($('igChart').getContext('2d'),{
+    type:'bar',
+    data:{labels:d.months,datasets:[
+      {type:'bar',order:1,label:'貼文數',data:d.IG_posts,backgroundColor:'rgba(255,139,203,.8)',yAxisID:'y',stack:'s'},
+      {type:'bar',order:1,label:'Reels數',data:d.IG_reels,backgroundColor:'rgba(197,109,203,.8)',yAxisID:'y',stack:'s'},
+      {type:'line',order:2,label:'互動數',data:d.IG_int,borderColor:'#FFD700',backgroundColor:'transparent',yAxisID:'y2'},
+      {type:'line',order:2,label:'粉絲數成長',data:d.IG_new,borderColor:'#59D1FF',backgroundColor:'transparent',yAxisID:'y3'}
+    ]},
+    options:{plugins:{legend:{labels:{color:'#fff'}}},scales:{x:{ticks:{color:'#fff'}},y:{stacked:true},y2:{position:'right',grid:{drawOnChartArea:false}},y3:{position:'right',offset:true,grid:{drawOnChartArea:false}}}}
+  });
+
+  /* -- FB -- */
+  fbChart?.destroy();
+  fbChart=new Chart($('fbChart').getContext('2d'),{
+    type:'bar',
+    data:{labels:d.months,datasets:[
+      {type:'bar',label:'貼文數',data:d.FB_posts,backgroundColor:'rgba(24,119,242,.8)',yAxisID:'y',stack:'s'},
+      {type:'bar',label:'影片數',data:d.FB_vids,backgroundColor:'rgba(14,90,171,.8)',yAxisID:'y',stack:'s'},
+      {type:'line',label:'互動數',data:d.FB_int,borderColor:'#FFD700',backgroundColor:'transparent',yAxisID:'y2'},
+      {type:'line',label:'粉絲數成長',data:d.FB_new,borderColor:'#59D1FF',backgroundColor:'transparent',yAxisID:'y3'}
+    ]},
+    options:{plugins:{legend:{labels:{color:'#fff'}}},scales:{x:{ticks:{color:'#fff'}},y:{stacked:true},y2:{position:'right',grid:{drawOnChartArea:false}},y3:{position:'right',offset:true,grid:{drawOnChartArea:false}}}}
+  });
+
+  /* -- Podcast -- */
+  podcastChart?.destroy();
+  podcastChart=new Chart($('podcastChart').getContext('2d'),{
+    type:'bar',
+    data:{labels:d.months,datasets:[
+      {type:'bar',label:'上傳數',data:d.POD_up,backgroundColor:'rgba(160,108,255,.8)'},
+      {type:'line',label:'下載數',data:d.POD_down,borderColor:'#FFD700',backgroundColor:'transparent',yAxisID:'y2'}
+    ]},
+    options:{plugins:{legend:{labels:{color:'#fff'}}},scales:{x:{ticks:{color:'#fff'}},y:{ticks:{color:'#A06CFF'}},y2:{position:'right',grid:{drawOnChartArea:false}}}}
+  });
+
+  /* -- YouTube -- */
+  youtubeChart?.destroy();
+  youtubeChart=new Chart($('youtubeChart').getContext('2d'),{
+    type:'bar',
+    data:{labels:d.months,datasets:[
+      {type:'bar',label:'長影片數',data:d.YT_long,backgroundColor:'rgba(255,0,0,.8)',stack:'s',yAxisID:'y'},
+      {type:'bar',label:'Shorts數',data:d.YT_short,backgroundColor:'rgba(200,0,0,.8)',stack:'s',yAxisID:'y'},
+      {
+        type: 'line',
+        label: '粉絲數成長',
+        data: d.YT_new,
+        borderColor: '#59D1FF',
+        backgroundColor: 'transparent',
+        tension: 0.3,
+        yAxisID: 'y3'
       },
-      options: {
-        animation: {
-  onComplete: () => {
-    const charts = [
-      { id: "igChart", color: "#59D1FF" },
-      { id: "fbChart", color: "#59D1FF" },
-      { id: "youtubeChart", color: "#59D1FF" }
-    ];
-    charts.forEach(({ id, color }) => {
-      const chart = Chart.getChart(id);
-      if (!chart) return;
-      const ctx = chart.ctx;
-      ctx.save();
-      ctx.font = 'bold 12px Noto Sans TC';
-      ctx.fillStyle = color;
-      const datasetIndex = chart.data.datasets.findIndex(ds => ds.label.includes('粉絲'));
-      const meta = chart.getDatasetMeta(datasetIndex);
-      chart.data.datasets[datasetIndex].data.forEach((val, i) => {
-        const x = meta.data[i].x;
-        const y = meta.data[i].y;
-        ctx.fillText(`+${val}`, x - 10, y - 10);
-      });
-      ctx.restore();
-    });
-  }
-},
+      {type:'line',label:'觀看數',data:d.YT_view,borderColor:'#FFD700',backgroundColor:'transparent',yAxisID:'y2'}
+    ]},
+    options:{plugins:{legend:{labels:{color:'#fff'}}},scales:{x:{ticks:{color:'#fff'}},y:{ticks:{color:'#FF0000'}},y2:{position:'right',grid:{drawOnChartArea:false}},
+        y3:{
+        position:'right',
+        offset:true,
+        grid:{drawOnChartArea:false},
+        title:{display:true, text:'新增粉絲', color:'#fff'},
+        ticks:{color:'#fff'}
+      }}}
+  });
 
-        responsive: true,
-        plugins: {
-          legend: { labels: { color: '#fff' } },
-          tooltip: {
-            callbacks: {
-              label: ctx => ctx.dataset.label === '粉絲數成長' ? `+${ctx.parsed.y} 粉絲` : `${ctx.dataset.label}: ${ctx.parsed.y}`
-            }
-          }
-        },
-        scales: {
-          x: { ticks: { color: '#fff' }, grid: { color: '#333' } },
-          y: { stacked: true, beginAtZero: true, ticks: { color: '#1877f2' }, title: { display: true, text: '內容數', color: '#1877f2' } },
-          y2: { position: 'right', ticks: { color: '#FFD700' }, grid: { drawOnChartArea: false }, title: { display: true, text: '互動數', color: '#FFD700' } },
-          y3: { position: 'right', offset: true, ticks: { color: '#59D1FF' }, grid: { drawOnChartArea: false }, title: { display: true, text: '粉絲數', color: '#59D1FF' } }
-        }
-      }
-    });
+  /* -- Growth & Ads -- */
+  growthChart?.destroy();
+  growthChart=new Chart($('growthChart').getContext('2d'),{
+    type:'bar',
+    data:{labels:d.months,datasets:[
+      {type:'bar',order:1,label:'IG 新增粉絲',data:d.IG_new,backgroundColor:'rgba(255,139,203,.8)',yAxisID:'y'},
+      {type:'bar',order:1,label:'FB 新增粉絲',data:d.FB_new,backgroundColor:'rgba(24,119,242,.8)',yAxisID:'y'},
+      {type:'line',order:2,label:'IG 廣告費',data:d.IG_ads.map(null0),borderColor:'rgba(180,60,150,1)',backgroundColor:'transparent',yAxisID:'y2'},
+      {type:'line',order:2,label:'FB 廣告費',data:d.FB_ads.map(null0),borderColor:'rgba(10,70,150,1)',backgroundColor:'transparent',yAxisID:'y2'}
+    ]},
+    options:{plugins:{legend:{labels:{color:'#fff'}}},scales:{x:{ticks:{color:'#fff'}},y:{title:{display:true,text:'新增粉絲',color:'#fff'},ticks:{color:'#fff'}},y2:{position:'right',grid:{drawOnChartArea:false},title:{display:true,text:'廣告費 (NT$)',color:'#FFD700'},ticks:{color:'#FFD700'}}}}
+  });
+}
 
-    // Podcast
-    new Chart(document.getElementById('podcastChart').getContext('2d'), {
-      type: 'bar',
-      data: {
-        labels: ['一月', '二月', '三月', '四月', '五月', '六月'],
-        datasets: [
-          { type: 'bar', label: '上傳數', data: [3, 4, 3, 0, 0, 1], backgroundColor: 'rgba(160, 108, 255, 0.8)', stack: 'stack1' },
-          { type: 'line', label: '下載數', data: [577, 525, 590, 509, 643, 482], borderColor: '#FFD700', backgroundColor: 'transparent', tension: 0.3, yAxisID: 'y2' }
-        ]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { labels: { color: '#fff' } }
-        },
-        scales: {
-          x: { ticks: { color: '#fff' }, grid: { color: '#333' } },
-          y: { stacked: true, beginAtZero: true, ticks: { color: '#A06CFF' }, title: { display: true, text: '上傳數', color: '#A06CFF' } },
-          y2: { position: 'right', ticks: { color: '#FFD700' }, grid: { drawOnChartArea: false }, title: { display: true, text: '下載數', color: '#FFD700' } }
-        }
-      }
-    });
+/* 初次載入 + 手動更新 */
+window.addEventListener('DOMContentLoaded',buildCharts);
+$('updateBtn').addEventListener('click',buildCharts);
+  
+// --- 將目前表格內容序列化存到 localStorage ---
+function saveTableToStorage(){
+  const rows = [...document.querySelectorAll('#data-table tbody tr')];
+  const tableData = rows.map(r=>{
+    return [...r.children].map(td=>td.innerText.trim());
+  });
+  localStorage.setItem('dataTable', JSON.stringify(tableData));
+}
 
-    // YouTube
-    new Chart(document.getElementById('youtubeChart').getContext('2d'), {
-      type: 'bar',
-      data: {
-        labels: ['一月', '二月', '三月', '四月', '五月', '六月'],
-        datasets: [
-          { type: 'bar', label: '長影片數', data: [2, 4, 4, 1, 0, 1], backgroundColor: 'rgba(255, 0, 0, 0.8)', yAxisID: 'y', stack: 'stack1' },
-          { type: 'bar', label: 'Shorts 數', data: [6, 8, 0, 0, 0, 2], backgroundColor: 'rgba(200, 0, 0, 0.8)', yAxisID: 'y', stack: 'stack1' },
-          { type: 'line', label: '觀看數', data: [2432, 3134, 2798, 2043, 5546, 2555], borderColor: '#FFD700', backgroundColor: 'transparent', tension: 0.3, yAxisID: 'y2' },
-          { type: 'line', label: '粉絲數成長', data: [2, 20, 14, 10, 2, 5], borderColor: '#59D1FF', backgroundColor: 'transparent', tension: 0.3, yAxisID: 'y3' }
-        ]
-      },
-      options: {
-        animation: {
-  onComplete: () => {
-    const charts = [
-      { id: "igChart", color: "#59D1FF" },
-      { id: "fbChart", color: "#59D1FF" },
-      { id: "youtubeChart", color: "#59D1FF" }
-    ];
-    charts.forEach(({ id, color }) => {
-      const chart = Chart.getChart(id);
-      if (!chart) return;
-      const ctx = chart.ctx;
-      ctx.save();
-      ctx.font = 'bold 12px Noto Sans TC';
-      ctx.fillStyle = color;
-      const datasetIndex = chart.data.datasets.findIndex(ds => ds.label.includes('粉絲'));
-      const meta = chart.getDatasetMeta(datasetIndex);
-      chart.data.datasets[datasetIndex].data.forEach((val, i) => {
-        const x = meta.data[i].x;
-        const y = meta.data[i].y;
-        ctx.fillText(`+${val}`, x - 10, y - 10);
-      });
-      ctx.restore();
+// --- 從 localStorage 載入並套回表格 ---
+function loadTableFromStorage(){
+  const raw = localStorage.getItem('dataTable');
+  if(!raw) return;
+  const tableData = JSON.parse(raw);
+  const rows = [...document.querySelectorAll('#data-table tbody tr')];
+  rows.forEach((r, i) => {
+    const cells = r.children;
+    if(!tableData[i]) return;
+    tableData[i].forEach((val, j) => {
+      if(cells[j]) cells[j].innerText = val;
     });
-  }
-},
-        responsive: true,
-        plugins: {
-          legend: { labels: { color: '#fff' } },
-          tooltip: {
-            callbacks: {
-              label: ctx => ctx.dataset.label === '粉絲數成長' ? `+${ctx.parsed.y} 粉絲` : `${ctx.dataset.label}: ${ctx.parsed.y}`
-            }
-          }
-        },
-        scales: {
-          x: { ticks: { color: '#fff' }, grid: { color: '#333' } },
-          y: { stacked: true, beginAtZero: true, ticks: { color: '#FF0000' }, title: { display: true, text: '上傳數', color: '#FF0000' } },
-          y2: { position: 'right', ticks: { color: '#FFD700' }, grid: { drawOnChartArea: false }, title: { display: true, text: '觀看數', color: '#FFD700' } },
-          y3: { position: 'right', offset: true, ticks: { color: '#59D1FF' }, grid: { drawOnChartArea: false }, title: { display: true, text: '粉絲數', color: '#59D1FF' } }
-        }
-      }
-    });
-  </script>
+  });
+}
 
+// 在 DOMContentLoaded 時先嘗試載入，再建圖
+window.addEventListener('DOMContentLoaded', () => {
+  loadTableFromStorage();
+  buildCharts();
+});
+
+// 更新圖表時也存一次
+$('updateBtn').addEventListener('click', () => {
+  buildCharts();
+  saveTableToStorage();
+});
+</script>
+  <div class="keynote-section">
+  <h2>Keynote 總結：7 月趨勢分析 &amp; 後續營運方向討論</h2>
+
+  <p><strong>7 月整體概況與經營方向：</strong><br>
+    ‧ IG、FB 互動與粉絲雙雙創下年內新高；<br>
+    ‧ 利用名人短影remix引發熱度的模式反應不錯可持續進行，後續搭配自製的圖文強化該主題內容深度。</p>
+
+  <p><strong>Instagram：</strong><br>
+    ‧ 互動數 <strong>6,485</strong>（+44% MoM），新增粉絲 <strong>1,275</strong>。<br>
+    ‧ 投放廣告 NT$9,540 → CPC ≈ <strong>NT$7.5／粉</strong>，維持高效。<br>
+    ‧ 🔑 <em>爆點</em> 金凱瑞短影、心理健康生活化之Q版圖文。</p>
+
+  <p><strong>Facebook：</strong><br>
+    ‧ 互動數 <strong>1,052</strong>（+460% MoM），新增粉絲 72；<br>
+    ‧ 廣告 NT$2,100 → CPC ≈  <strong>NT$29.6／粉</strong>。觸及成長但轉換仍低。<br>
+    ‧ 互動集中在「張醫師的自律神經影片」（下了一週廣告）。</p>
+
+  <p><strong>Podcast：</strong><br>
+    ‧ 7 月上架 1 集，7月累計 <strong>558</strong> 次下載。<br>
+    ‧ 討論後續頻道價值＆資源投入</p>
+
+  <p><strong>YouTube：</strong><br>
+    ‧ 無新長片，上架 Shorts 1 支；全站觀看 <strong>2,326</strong>。<br>
+    ‧ 討論後續頻道價值＆資源投入</p>
+
+  <h3 style="color:#FFD700;margin:32px 0 12px;">接下來 3 個月營運建議</h3>
+  <ul>
+    <li><strong>IG</strong>：維持 <em>1-2 Reels + 2‒3 Posts／週；持續測試remix＆能引發互動的圖文。</em>廣告預算 <strong>NT$10k／月</strong></li>
+    <li><strong>FB</strong>：同步IG貼文外，加入 <strong>醫師/心理師專欄長文</strong>，每月挑 2 則推廣，</em>廣告預算 <strong>NT$4k／月</strong>，目標 CPC &lt; NT$20。</li>
+    <li><strong>Podcast</strong>：思考頻道價值＆資源投入</li>
+    <li><strong>YouTube</strong>：思考頻道價值＆資源投入</li>
+    <li><strong>人力資源</strong>：Monica + 欣泉護理師2-3個短影/月 </li>
+    <li><strong>月討論</strong>：每月檢討 KPI（增粉、互動、CPC）、內容題材、投入資源。</li>
+  </ul>
+
+  <p class="credit">整理：Monica • 2025‑08‑01</p>
+</div>
 </body>
 </html>
