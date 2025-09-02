@@ -4,29 +4,28 @@
   <meta charset="UTF-8" />
   <title>廣告成效追蹤儀表板</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- Chart.js + DataLabels -->
+  <!-- Chart.js + DataLabels（CDN 需可連線，否則下方有防呆訊息） -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
   <style>
-    :root { --bg:#101010; --card:#1a1a1a; --text:#fff; --gold:#FFD700; --cyan:#38BDF8; --orange:#FF7043; --purple:#C68BFF; --ok:#2ECC71; --grid:rgba(255,255,255,.08); }
+    :root { --bg:#101010; --card:#1a1a1a; --text:#fff; --gold:#FFD700; --cyan:#38BDF8; --orange:#FF7043; --ok:#2ECC71; --grid:rgba(255,255,255,.08); }
     *{box-sizing:border-box}
     body{font-family:'Noto Sans TC',system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans","PingFang TC","Microsoft JhengHei",sans-serif;background:var(--bg);color:var(--text);margin:0;padding:20px}
     h1{margin:0 0 16px;text-align:center;color:var(--gold)}
-    /* 工具列 */
     .toolbar{max-width:1100px;margin:0 auto 16px;display:flex;gap:12px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
     select, .btn{background:#1e1e1e;color:#fff;border:1px solid #444;padding:8px 12px;border-radius:8px;cursor:pointer}
     .btn.btn-primary{background:#FFD700;color:#000;border-color:#FFD700;font-weight:700}
-    /* 表格 */
     table{width:100%;max-width:1100px;margin:0 auto 16px;border-collapse:collapse;background:rgba(255,255,255,.05);font-size:14px}
     th,td{border:1px solid rgba(255,255,255,.12);padding:6px 8px;text-align:center}
     th{background:rgba(255,215,0,.15)}
-    /* 月分組粗分隔線（自動加 .month-sep） */
     tbody tr.month-sep td{border-top:3px solid rgba(255,255,255,.45) !important}
-    /* 初診欄「視覺合併」樣式 */
+    /* pseudo-merge 樣式 */
     td.first-holder{ background: rgba(163,230,53,.06); font-weight:700; }
-    td.first-ghost{ color: transparent; }                 /* 內容隱形 */
-    tbody tr + tr td.first-ghost{ border-top-color: transparent; } /* 上邊框透明，看起來像往下延伸 */
-
+    td.first-ghost{ color: transparent; }
+    tbody tr + tr td.first-ghost{ border-top-color: transparent; }
+    td.total-holder{ background: rgba(56,189,248,.06); font-weight:700; }
+    td.total-ghost{ color: transparent; }
+    tbody tr + tr td.total-ghost{ border-top-color: transparent; }
     /* Keynote */
     .keynote{max-width:1100px;margin:14px auto 18px;display:grid;gap:12px}
     .card{background:#121212;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 16px}
@@ -35,12 +34,9 @@
     .pill{display:inline-block;padding:8px 12px;background:#171717;border:1.5px solid rgba(255,255,255,.12);border-radius:9999px;line-height:1;box-shadow:inset 0 0 0 1px rgba(255,255,255,.05)}
     .pill.ok{ border-color:var(--ok); box-shadow:0 0 0 2px rgba(46,204,113,.22), inset 0 0 0 1px rgba(255,255,255,.05); }
     .plat-table th{background:rgba(255,215,0,.12)}
-
-    /* 圖表容器 */
     .chart-container{max-width:1100px;margin:12px auto 8px;background:var(--card);padding:16px;border-radius:12px}
     canvas{width:100% !important;height:480px !important}
-
-    /* 新增月份 dialog */
+    /* Dialog */
     dialog::backdrop{background:rgba(0,0,0,.5)}
     dialog{border:none;border-radius:12px;padding:0;max-width:560px;width:92%}
     .dlg{background:#181818;color:#fff;border:1px solid rgba(255,255,255,.1);border-radius:12px}
@@ -49,10 +45,14 @@
     .dlg .body label{font-size:12px;opacity:.9}
     .dlg input, .dlg select{width:100%;padding:8px 10px;border:1px solid #444;background:#111;color:#fff;border-radius:8px}
     .dlg footer{display:flex;justify-content:flex-end;gap:8px;padding:12px 16px;border-top:1px solid rgba(255,255,255,.1)}
+    /* 載入失敗警示 */
+    .warn{max-width:1100px;margin:12px auto;padding:10px 12px;border-radius:8px;background:#3b1b1b;border:1px solid #a33;color:#ffdede}
   </style>
 </head>
 <body>
   <h1>廣告成效追蹤儀表板</h1>
+
+  <div id="warnBox"></div>
 
   <div class="toolbar">
     <label for="monthSelect">顯示月份：</label>
@@ -66,13 +66,12 @@
     <button class="btn btn-primary" id="addBtn">新增月份資料</button>
   </div>
 
-  <!-- Keynote：固定分析 8 月 -->
+  <!-- Keynote（8月） -->
   <section class="keynote">
     <div class="card">
       <h2>本月廣告投放效率分析 <span class="pill">8月</span></h2>
       <div class="kpi-row" id="kpiPills"></div>
       <ul id="analysisBullets" style="margin:8px 0 6px 18px;line-height:1.6;"></ul>
-
       <h3 style="margin:10px 0 6px;font-size:16px;">8月 平台別成效（Meta vs LINE）</h3>
       <table class="plat-table">
         <thead><tr><th>平台</th><th>曝光數</th><th>點擊數</th><th>花費金額 (NT$)</th><th>CPC</th><th>CRT（%）</th></tr></thead>
@@ -81,7 +80,7 @@
     </div>
   </section>
 
-  <!-- 統計表（可新增；CPC/CRT 自動計算；初診「視覺合併」） -->
+  <!-- 統計表（含 總人次 / 初診 pseudo-merge） -->
   <table id="adTable">
     <thead>
       <tr>
@@ -89,6 +88,7 @@
         <th>平台／活動</th>
         <th>曝光數</th>
         <th>連結點擊次數</th>
+        <th>總人次</th>
         <th>初診人數</th>
         <th>花費金額 (NT$)</th>
         <th>CPC<br>(每次點擊成本)</th>
@@ -96,19 +96,20 @@
       </tr>
     </thead>
     <tbody id="adTbody">
-      <!-- 預設資料（第一次載入才會用；之後改用 localStorage） -->
-      <tr><td>5月</td><td>Google-初診</td><td>174000</td><td>3255</td><td>330</td><td>8938</td><td></td><td></td></tr>
-      <tr><td>5月</td><td>Meta-康迎</td><td>439706</td><td>20350</td><td>330</td><td>29958</td><td></td><td></td></tr>
-
-      <tr><td>6月</td><td>Google-初診</td><td>496000</td><td>6486</td><td>285</td><td>9201</td><td></td><td></td></tr>
-      <tr><td>6月</td><td>Meta-康迎</td><td>30360</td><td>22629</td><td>285</td><td>36024</td><td></td><td></td></tr>
-
-      <tr><td>7月</td><td>Google</td><td>311000</td><td>2932</td><td>399</td><td>2596</td><td></td><td></td></tr>
-      <tr><td>7月</td><td>Meta-康迎</td><td>128157</td><td>2932</td><td>399</td><td>5264</td><td></td><td></td></tr>
-      <tr><td>7月</td><td>Meta-初診</td><td>248854</td><td>17792</td><td>399</td><td>12008</td><td></td><td></td></tr>
-
-      <tr><td>8月</td><td>Meta-初診</td><td>493772</td><td>28224</td><td>353</td><td>29554</td><td></td><td></td></tr>
-      <tr><td>8月</td><td>Line-rTMS</td><td>1836829</td><td>7402</td><td>353</td><td>18000</td><td></td><td></td></tr>
+      <!-- 預設資料（第一次使用），之後以 localStorage 覆蓋 -->
+      <!-- 5 月 -->
+      <tr><td>5月</td><td>Google-初診</td><td>174000</td><td>3255</td><td>5396</td><td>330</td><td>8938</td><td></td><td></td></tr>
+      <tr><td>5月</td><td>Meta-康迎</td><td>439706</td><td>20350</td><td></td><td>330</td><td>29958</td><td></td><td></td></tr>
+      <!-- 6 月 -->
+      <tr><td>6月</td><td>Google-初診</td><td>496000</td><td>6486</td><td>5402</td><td>285</td><td>9201</td><td></td><td></td></tr>
+      <tr><td>6月</td><td>Meta-康迎</td><td>30360</td><td>22629</td><td></td><td>285</td><td>36024</td><td></td><td></td></tr>
+      <!-- 7 月 -->
+      <tr><td>7月</td><td>Google</td><td>311000</td><td>2932</td><td>5779</td><td>399</td><td>2596</td><td></td><td></td></tr>
+      <tr><td>7月</td><td>Meta-康迎</td><td>128157</td><td>2932</td><td></td><td>399</td><td>5264</td><td></td><td></td></tr>
+      <tr><td>7月</td><td>Meta-初診</td><td>248854</td><td>17792</td><td></td><td>399</td><td>12008</td><td></td><td></td></tr>
+      <!-- 8 月 -->
+      <tr><td>8月</td><td>Meta-初診</td><td>493772</td><td>28224</td><td>5335</td><td>353</td><td>29554</td><td></td><td></td></tr>
+      <tr><td>8月</td><td>Line-rTMS</td><td>1836829</td><td>7402</td><td></td><td>353</td><td>18000</td><td></td><td></td></tr>
     </tbody>
   </table>
 
@@ -143,8 +144,12 @@
           <input name="click" type="number" min="0" step="1" value="0" required />
         </div>
         <div>
+          <label>總人次（該月總量）</label>
+          <input name="total" type="number" min="0" step="1" value="0" />
+        </div>
+        <div>
           <label>初診人數（該月總量）</label>
-          <input name="first" type="number" min="0" step="1" value="0" required />
+          <input name="first" type="number" min="0" step="1" value="0" />
         </div>
         <div>
           <label>花費金額 (NT$)</label>
@@ -159,15 +164,25 @@
   </dialog>
 
   <script>
-    /* ================= 基礎工具 ================= */
-    try{ if(window.ChartDataLabels){ Chart.register(ChartDataLabels); } }catch(e){}
+    /* ===== 相容性 & 安全註冊 ===== */
+    if(!String.prototype.replaceAll){
+      String.prototype.replaceAll = function(s, r){ return this.split(s).join(r); };
+    }
+    const warn = (msg)=>{ const box=document.getElementById('warnBox'); box.innerHTML=`<div class="warn">${msg}</div>`; };
+    const scriptsReady = ()=> {
+      if(!window.Chart){ warn('Chart.js 未載入（可能網路或 CDN 被擋）。請確認能連到 cdn.jsdelivr.net，或改用本機檔案。'); return false; }
+      try{ if(window.ChartDataLabels){ Chart.register(ChartDataLabels); } }catch(e){}
+      return true;
+    };
+
+    /* ===== Utils ===== */
     const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
     const toNum=v=>{ if(v==null) return 0; const n=parseFloat(String(v).replaceAll(',','').replace('%','').trim()); return isNaN(n)?0:n; };
     const fmtInt=n=>Number(n||0).toLocaleString('en-US');
     const fmtMoney=n=>'NT$'+fmtInt(n);
     const varCSS=(n,f)=>getComputedStyle(document.documentElement).getPropertyValue(n)?.trim()||f;
 
-    /* ================= CPC/CRT 發光膠囊 ================= */
+    /* ===== CPC/CRT 膠囊外掛 ===== */
     function drawPill(ctx, x, y, text, opt){
       const padX=opt.padX??10, padY=opt.padY??5, radius=opt.radius??12;
       ctx.save(); ctx.font=opt.font??'12px "Noto Sans TC", sans-serif'; ctx.textBaseline='middle'; ctx.textAlign='center';
@@ -188,75 +203,74 @@
         drawPill(ctx,px,base+24,r.crtText||'',{fillStyle:'rgba(198,139,255,0.12)',strokeStyle:'#C68BFF',textColor:'#C68BFF',shadowColor:'rgba(198,139,255,0.6)',shadowBlur:8});
       });
     }};
-    Chart.register(belowLabels);
+    if (window.Chart) Chart.register(belowLabels);
 
-    /* ================= 視覺合併 + 自動計算 ================= */
+    /* ===== 視覺合併 + 自動計算 ===== */
     function readTableAndFill(){
       const rows = Array.from(document.querySelectorAll('#adTbody tr'));
-
-      // 清掉舊樣式
-      rows.forEach(tr => [...tr.children].forEach(td => td.classList.remove('first-holder','first-ghost')));
-
-      // 依月份分組
+      // 清樣式
+      rows.forEach(tr => [...tr.children].forEach(td => td.classList.remove('first-holder','first-ghost','total-holder','total-ghost')));
+      // 分組
       const groups = {};
       rows.forEach((tr, idx) => {
-        const monText = tr.children[0].innerText.trim();
+        const monText = tr.children[0]?.innerText?.trim() || '';
         const m = (monText.match(/(\d{1,2})\s*月/)||[])[1] || 'other';
         (groups[m] ||= []).push(idx);
       });
-
-      // 每月保留一列的「初診」(取該月最大非 0 值)
-      const keepIdxByMonth = {};
+      // 決定每月保留列（取最大非零）
+      const keepFirstByMonth={}, keepTotalByMonth={};
       for(const m in groups){
-        let keep=null, best=0;
+        let keepF=null,bestF=0, keepT=null,bestT=0;
         groups[m].forEach(i=>{
-          const v = toNum(rows[i].children[4]?.innerText);
-          if(v>best){best=v; keep=i;}
+          const tr=rows[i], t=tr.children;
+          const vF=toNum(t[5]?.innerText); // 初診
+          const vT=toNum(t[4]?.innerText); // 總人次
+          if(vF>bestF){bestF=vF; keepF=i;}
+          if(vT>bestT){bestT=vT; keepT=i;}
         });
-        keepIdxByMonth[m]=keep;
+        keepFirstByMonth[m]=keepF; keepTotalByMonth[m]=keepT;
       }
-
-      // 產生資料 & 樣式
+      // 產生資料 + 樣式 + CPC/CRT
       let lastM=null;
       const data = rows.map((tr,i)=>{
         const t=tr.children;
-        const monText=t[0].innerText.trim();
+        const monText=t[0]?.innerText?.trim()||'';
         const m=(monText.match(/(\d{1,2})\s*月/)||[])[1]||'other';
-        const name=(t[1].innerText||'').trim();
-        const imp=toNum(t[2]?.innerText);
+        const name=(t[1]?.innerText||'').trim();
+        const imp =toNum(t[2]?.innerText);
         const click=toNum(t[3]?.innerText);
-        const cost=toNum(t[5]?.innerText);
-
-        // CPC/CRT 回填
-        const cpc = click>0 ? +(cost/click).toFixed(2) : 0;
-        const crt = imp>0   ? +((click/imp)*100).toFixed(2) : 0;
-        if (t[6]) t[6].innerText = cpc ? cpc.toFixed(2) : '';
-        if (t[7]) t[7].innerText = imp>0 ? `${crt.toFixed(2)}%` : '';
-
+        let total=0, first=0;
+        const cost=toNum(t[6]?.innerText);
         // 月分粗線
         tr.classList.toggle('month-sep', i===0 || lastM!==m); lastM=m;
-
-        // 初診：只保留 keeper，其它列清空並做「幽靈格」
-        const keeper = keepIdxByMonth[m];
-        let first = 0;
-        if(keeper!=null){
-          if(i===keeper){ first = toNum(t[4]?.innerText); t[4].classList.add('first-holder'); }
-          else { t[4].innerText=''; t[4].classList.add('first-ghost'); }
-        }else{ t[4].innerText=''; t[4].classList.add('first-ghost'); }
-
-        return {month:m,name,imp,click,first,cost,cpc,crt};
+        // 總人次 pseudo-merge
+        const kT=keepTotalByMonth[m];
+        if(kT!=null){ if(i===kT){ total=toNum(t[4]?.innerText); t[4].classList.add('total-holder'); }
+                      else{ t[4].innerText=''; t[4].classList.add('total-ghost'); } }
+        else { t[4].innerText=''; t[4].classList.add('total-ghost'); }
+        // 初診 pseudo-merge
+        const kF=keepFirstByMonth[m];
+        if(kF!=null){ if(i===kF){ first=toNum(t[5]?.innerText); t[5].classList.add('first-holder'); }
+                      else{ t[5].innerText=''; t[5].classList.add('first-ghost'); } }
+        else { t[5].innerText=''; t[5].classList.add('first-ghost'); }
+        // CPC/CRT
+        const cpc = click>0 ? +(cost/click).toFixed(2) : 0;
+        const crt = imp>0   ? +((click/imp)*100).toFixed(2) : 0;
+        if (t[7]) t[7].innerText = cpc ? cpc.toFixed(2) : '';
+        if (t[8]) t[8].innerText = imp>0 ? `${crt.toFixed(2)}%` : '';
+        return {month:m,name,imp,click,total,first,cost,cpc,crt};
       }).filter(d=>d.name);
-
       return data;
     }
 
-    /* ================= 依月份彙總（含初診） ================= */
+    /* ===== 依月份彙總 ===== */
     function groupByMonth(data, monthFilter='all'){
       const filtered=monthFilter==='all'?data:data.filter(d=>d.month===monthFilter);
       const map=new Map();
       filtered.forEach(d=>{
-        if(!map.has(d.month)) map.set(d.month,{month:d.month,imp:0,click:0,cost:0,first:0});
-        const m=map.get(d.month); m.imp+=d.imp; m.click+=d.click; m.cost+=d.cost; m.first+=d.first; // first 只會在 keeper 列有值
+        if(!map.has(d.month)) map.set(d.month,{month:d.month,imp:0,click:0,cost:0,total:0,first:0});
+        const m=map.get(d.month);
+        m.imp+=d.imp; m.click+=d.click; m.cost+=d.cost; m.total+=d.total; m.first+=d.first;
       });
       return Array.from(map.values())
         .filter(m=>m.month!=='other')
@@ -264,60 +278,65 @@
         .map(m=>({...m,cpc:m.click>0?+(m.cost/m.click).toFixed(2):0,crt:m.imp>0?+((m.click/m.imp)*100).toFixed(2):0}));
     }
 
-    /* ================= 主圖 ================= */
+    /* ===== 主圖 ===== */
     let combinedChart;
     function buildCombinedChart(agg){
+      if(!scriptsReady()) return; // Chart.js 未就緒
       const labels = agg.map(m=>`${m.month}月`);
       const exposure = agg.map(m=>m.imp);
       const clicks   = agg.map(m=>m.click);
       const firsts   = agg.map(m=>m.first);
       const cost     = agg.map(m=>m.cost);
-
       const rows = agg.map(m=>({ cpcText: m.cpc?`CPC ${m.cpc.toFixed(2)}`:'CPC –', crtText:`CRT ${m.crt.toFixed(2)}%` }));
-
-      if(combinedChart) combinedChart.destroy();
-      combinedChart = new Chart(document.getElementById('combinedChart'),{
-        data:{ labels,
-          datasets:[
-            {type:'bar',label:'曝光數',data:exposure,yAxisID:'yExp',
-             backgroundColor:'rgba(255,193,7,.85)',barPercentage:.25,categoryPercentage:.50,datalabels:{display:false},order:1},
-            {type:'line',label:'點擊數',data:clicks,yAxisID:'yClick',
-             borderColor:varCSS('--cyan','#38BDF8'),backgroundColor:'transparent',tension:.25,pointRadius:4,order:2,
-             datalabels:{align:'top',anchor:'end',offset:10,color:varCSS('--cyan','#38BDF8'),
-               formatter:v=>v?`點擊數 ${v.toLocaleString('en-US')}`:'',font:{weight:'700'}}},
-            {type:'line',label:'初診人數',data:firsts,yAxisID:'yFirst',
-             borderColor:'#A3E635',backgroundColor:'transparent',tension:.25,pointRadius:4,order:2,
-             datalabels:{align:'bottom',anchor:'end',offset:24,color:'#A3E635',
-               formatter:v=>v?`初診數 ${v.toLocaleString('en-US')}`:'',font:{weight:'700'}}},
-            {type:'line',label:'花費金額 (NT$)',data:cost,yAxisID:'yCost',
-             borderColor:varCSS('--orange','#FF7043'),backgroundColor:'transparent',tension:.25,pointRadius:4,order:3,
-             datalabels:{align:'top',anchor:'end',offset:6,color:varCSS('--orange','#FF7043'),
-               formatter:v=>v?`NT$${v.toLocaleString('en-US')}`:'',font:{weight:'700'}}},
-          ]},
-        options:{
-          responsive:true,maintainAspectRatio:false,
-          layout:{padding:{top:18,right:12,left:12,bottom:140}},
-          plugins:{
-            legend:{labels:{color:'#fff'}},
-            tooltip:{callbacks:{label:(c)=>{const v=c.parsed.y||0;return c.dataset.label.includes('花費')?`${c.dataset.label}: NT$${v.toLocaleString('en-US')}`:`${c.dataset.label}: ${v.toLocaleString('en-US')}`}}},
-            belowLabels:{rows,baseOffset:40}
-          },
-          scales:{
-            x:{offset:true,ticks:{color:'#fff',padding:96},grid:{color:'rgba(255,255,255,.07)'}},
-            yExp:{position:'left',ticks:{color:'#fff'},grid:{color:varCSS('--grid','rgba(255,255,255,.08)')},title:{display:true,text:'數量（曝光／點擊／初診）',color:'#fff'}},
-            yClick:{position:'left',display:false,grid:{drawOnChartArea:false}},   // 點擊自動縮放軸
-            yFirst:{position:'left',display:false,grid:{drawOnChartArea:false}},   // 初診自動縮放軸
-            yCost:{position:'right',ticks:{color:varCSS('--orange','#FF7043')},grid:{drawOnChartArea:false},title:{display:true,text:'花費金額 (NT$)',color:varCSS('--orange','#FF7043')}}
+      try{
+        if(combinedChart) combinedChart.destroy();
+        Chart.register(belowLabels); // 再保險註冊一次（若先前 Chart 尚未載入）
+        combinedChart = new Chart(document.getElementById('combinedChart'),{
+          data:{ labels,
+            datasets:[
+              {type:'bar',label:'曝光數',data:exposure,yAxisID:'yExp',
+               backgroundColor:'rgba(255,193,7,.85)',barPercentage:.25,categoryPercentage:.50,datalabels:{display:false},order:1},
+              {type:'line',label:'點擊數',data:clicks,yAxisID:'yClick',
+               borderColor:varCSS('--cyan','#38BDF8'),backgroundColor:'transparent',tension:.25,pointRadius:4,order:2,
+               datalabels:{align:'top',anchor:'end',offset:10,color:varCSS('--cyan','#38BDF8'),
+                 formatter:v=>v?`點擊數 ${v.toLocaleString('en-US')}`:'',font:{weight:'700'}}},
+              {type:'line',label:'初診人數',data:firsts,yAxisID:'yFirst',
+               borderColor:'#A3E635',backgroundColor:'transparent',tension:.25,pointRadius:4,order:2,
+               datalabels:{align:'bottom',anchor:'end',offset:24,color:'#A3E635',
+                 formatter:v=>v?`初診數 ${v.toLocaleString('en-US')}`:'',font:{weight:'700'}}},
+              {type:'line',label:'花費金額 (NT$)',data:cost,yAxisID:'yCost',
+               borderColor:varCSS('--orange','#FF7043'),backgroundColor:'transparent',tension:.25,pointRadius:4,order:3,
+               datalabels:{align:'top',anchor:'end',offset:6,color:varCSS('--orange','#FF7043'),
+                 formatter:v=>v?`NT$${v.toLocaleString('en-US')}`:'',font:{weight:'700'}}},
+            ]},
+          options:{
+            responsive:true,maintainAspectRatio:false,
+            layout:{padding:{top:18,right:12,left:12,bottom:140}},
+            plugins:{
+              legend:{labels:{color:'#fff'}},
+              tooltip:{callbacks:{label:(c)=>{const v=c.parsed.y||0;return c.dataset.label.includes('花費')?`${c.dataset.label}: NT$${v.toLocaleString('en-US')}`:`${c.dataset.label}: ${v.toLocaleString('en-US')}`}}},
+              belowLabels:{rows,baseOffset:40}
+            },
+            scales:{
+              x:{offset:true,ticks:{color:'#fff',padding:96},grid:{color:'rgba(255,255,255,.07)'}},
+              yExp:{position:'left',ticks:{color:'#fff'},grid:{color:varCSS('--grid','rgba(255,255,255,.08)')},title:{display:true,text:'數量（曝光／點擊／初診）',color:'#fff'}},
+              yClick:{position:'left',display:false,grid:{drawOnChartArea:false}},
+              yFirst:{position:'left',display:false,grid:{drawOnChartArea:false}},
+              yCost:{position:'right',ticks:{color:varCSS('--orange','#FF7043')},grid:{drawOnChartArea:false},title:{display:true,text:'花費金額 (NT$)',color:varCSS('--orange','#FF7043')}}
+            }
           }
-        }
-      });
+        });
+      }catch(e){
+        warn('繪圖時發生錯誤：'+ (e?.message||e));
+        console.error(e);
+      }
     }
 
-    /* ================= Keynote（8 月） ================= */
+    /* ===== Keynote（8月） ===== */
     function renderAnalysis(all){
       const aug=all.filter(d=>d.month==='8');
-      const pills=$('#kpiPills'), bullets=$('#analysisBullets'), plat=$('#platformTableBody');
-      if(!aug.length){pills.innerHTML='<span class="pill">本月暫無數據</span>';bullets.innerHTML='';plat.innerHTML='<tr><td colspan="6">無 8 月資料</td></tr>';return;}
+      const pills=$('#kpiPills'), plat=$('#platformTableBody');
+      if(!aug.length){pills.innerHTML='<span class="pill">本月暫無數據</span>';plat.innerHTML='<tr><td colspan="6">無 8 月資料</td></tr>';return;}
       const tImp=aug.reduce((s,d)=>s+d.imp,0), tClk=aug.reduce((s,d)=>s+d.click,0), tCost=aug.reduce((s,d)=>s+d.cost,0);
       const CPC=tClk?(tCost/tClk).toFixed(2):'0.00', CRT=tImp?((tClk/tImp)*100).toFixed(2):'0.00';
       pills.innerHTML=`<span class="pill">總曝光：<b>${fmtInt(tImp)}</b></span>
@@ -332,25 +351,24 @@
         return `<tr><td>${p}</td><td>${fmtInt(g.imp)}</td><td>${fmtInt(g.click)}</td><td>${fmtMoney(g.cost)}</td><td>${cpc}</td><td>${crt}%</td></tr>`;}).join('');
     }
 
-    /* ================= localStorage 永久化 ================= */
+    /* ===== localStorage 永久化 ===== */
     const STORAGE_KEY='adTableRows_v1';
-
     function saveTableToLocal(){
       const rows=[];
       document.querySelectorAll('#adTbody tr').forEach(tr=>{
         const t=tr.children;
-        const monthTxt=t[0].innerText.trim();
-        const month=(monthTxt.match(/(\d{1,2})\s*月/)||[])[1]||monthTxt; // 5
-        const name =(t[1].innerText||'').trim();
+        const monthTxt=t[0]?.innerText?.trim()||'';
+        const month=(monthTxt.match(/(\d{1,2})\s*月/)||[])[1]||monthTxt;
+        const name =(t[1]?.innerText||'').trim();
         const imp  =toNum(t[2]?.innerText);
         const click=toNum(t[3]?.innerText);
-        const first=toNum(t[4]?.innerText); // 視覺合併後，只有保留列有值
-        const cost =toNum(t[5]?.innerText);
-        if(name) rows.push({month,name,imp,click,first,cost});
+        const total=toNum(t[4]?.innerText); // 只有 keeper 列有值
+        const first=toNum(t[5]?.innerText); // 只有 keeper 列有值
+        const cost =toNum(t[6]?.innerText);
+        if(name) rows.push({month,name,imp,click,total,first,cost});
       });
       localStorage.setItem(STORAGE_KEY, JSON.stringify(rows));
     }
-
     function loadTableFromLocal(){
       const raw=localStorage.getItem(STORAGE_KEY);
       if(!raw) return false;
@@ -360,16 +378,22 @@
         const tbody=$('#adTbody'); tbody.innerHTML='';
         arr.forEach(r=>{
           const tr=document.createElement('tr');
-          tr.innerHTML=`<td>${r.month}月</td><td>${r.name}</td><td>${r.imp}</td><td>${r.click}</td><td>${r.first||''}</td><td>${r.cost}</td><td></td><td></td>`;
+          tr.innerHTML=`<td>${r.month}月</td>
+                        <td>${r.name}</td>
+                        <td>${r.imp}</td>
+                        <td>${r.click}</td>
+                        <td>${r.total||''}</td>
+                        <td>${r.first||''}</td>
+                        <td>${r.cost}</td>
+                        <td></td><td></td>`;
           tbody.appendChild(tr);
         });
-        // 下拉選單補月份
         [...new Set(arr.map(r=>String(r.month)))].forEach(m=>ensureMonthOption(m));
         return true;
-      }catch(e){ console.warn('loadTableFromLocal error',e); return false; }
+      }catch(e){ warn('讀取本機資料失敗'); console.warn(e); return false; }
     }
 
-    /* ================= Render & Interactions ================= */
+    /* ===== Render & Interactions ===== */
     function ensureMonthOption(month){
       const sel=$('#monthSelect');
       if (![...sel.options].some(o=>o.value===String(month))){
@@ -378,43 +402,45 @@
         [...sel.options].forEach((o,i)=>{ if(i>0) sel.remove(1); }); arr.forEach(o=>sel.appendChild(o));
       }
     }
-
     function render(){
-      const all=readTableAndFill();                   // 自動計算 + 視覺合併 + 月份粗線
+      const all=readTableAndFill();
       const sel=$('#monthSelect')?.value||'all';
-      const agg=groupByMonth(all, sel);               // 依月份彙總（初診只計 keeper）
+      const agg=groupByMonth(all, sel);
       buildCombinedChart(agg);
-      renderAnalysis(all);                            // Keynote（8 月）
-      saveTableToLocal();                             // 永久化
+      renderAnalysis(all);
+      saveTableToLocal();
     }
 
-    // 月份切換
-    $('#monthSelect').addEventListener('change', render);
-
-    // 新增月份
-    const addDlg=$('#addDialog');
-    $('#addBtn').addEventListener('click', ()=>addDlg.showModal());
-    $('#cancelAdd').addEventListener('click', ()=>addDlg.close());
-    $('#addForm').addEventListener('submit', (e)=>{
+    // 互動
+    document.getElementById('monthSelect').addEventListener('change', render);
+    const addDlg=document.getElementById('addDialog');
+    document.getElementById('addBtn').addEventListener('click', ()=>addDlg.showModal());
+    document.getElementById('cancelAdd').addEventListener('click', ()=>addDlg.close());
+    document.getElementById('addForm').addEventListener('submit', (e)=>{
       e.preventDefault();
       const f=e.target;
       const month=f.month.value, name=f.name.value.trim();
-      const imp=toNum(f.imp.value), click=toNum(f.click.value), first=toNum(f.first.value), cost=toNum(f.cost.value);
+      const imp=toNum(f.imp.value), click=toNum(f.click.value), total=toNum(f.total.value), first=toNum(f.first.value), cost=toNum(f.cost.value);
       if(!name){ alert('請輸入 平台／活動'); return; }
       const tr=document.createElement('tr');
-      tr.innerHTML=`<td>${month}月</td><td>${name}</td><td>${imp}</td><td>${click}</td><td>${first}</td><td>${cost}</td><td></td><td></td>`;
-      $('#adTbody').appendChild(tr);
+      tr.innerHTML=`<td>${month}月</td>
+                    <td>${name}</td>
+                    <td>${imp}</td>
+                    <td>${click}</td>
+                    <td>${total||''}</td>
+                    <td>${first||''}</td>
+                    <td>${cost}</td>
+                    <td></td><td></td>`;
+      document.getElementById('adTbody').appendChild(tr);
       ensureMonthOption(month);
       addDlg.close(); f.reset();
       render();
     });
-
-    // 表格可直接編輯（即時重算+保存）
-    $('#adTbody').setAttribute('contenteditable','true');
+    document.getElementById('adTbody').setAttribute('contenteditable','true');
     let editTimer=null;
-    $('#adTbody').addEventListener('input', ()=>{ clearTimeout(editTimer); editTimer=setTimeout(render, 300); });
+    document.getElementById('adTbody').addEventListener('input', ()=>{ clearTimeout(editTimer); editTimer=setTimeout(render, 300); });
 
-    // 初始化：先載入 localStorage，再 render
+    // 初始化：先載入 localStorage，再 render（Chart.js 失敗時仍可看到表格與 Keynote）
     window.addEventListener('DOMContentLoaded', ()=>{
       loadTableFromLocal();
       render();
